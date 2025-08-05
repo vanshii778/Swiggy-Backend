@@ -12,7 +12,7 @@ import UserContext from "./utils/UserContext";
 import {Provider} from "react-redux"
 import appStore from "./utils/appStore";
 import Cart from "./components/Cart";
-import Register from "./components/Register"
+import AuthPage from "./components/AuthPage";
 
 const Grocery = lazy(() => import("./components/Grocery"));
 
@@ -77,9 +77,14 @@ const appRouter = createBrowserRouter([
         element: <Cart />,
       },
       {
-        path: "/signup",
-        element: <Register />,
+        path: "/login",
+        element: <AuthPage defaultIsLogin={true} />,
       },
+      {
+        path: "/signup",
+        element: <AuthPage defaultIsLogin={false} />, 
+      },
+  
     ],
     errorElement: <Error />,
   },

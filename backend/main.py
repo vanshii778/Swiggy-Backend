@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 import os
 from dotenv import load_dotenv
-
+from fastapi.middleware.cors import CORSMiddleware
 from config.database import connect_db
 from routes.user_routes import user_router
 
@@ -10,6 +10,18 @@ load_dotenv()
 
 app = FastAPI(title="Swiggy", version="1.0.0")
 
+origins = [
+    "http://localhost:1234",  # Your React app's address
+    # Add any other addresses if needed
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, # This is the important part!
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Database connection
 @app.on_event("startup")
 async def startup_event():
