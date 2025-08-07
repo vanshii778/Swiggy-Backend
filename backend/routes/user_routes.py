@@ -1,12 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException,Header,Depends
 from passlib.context import CryptContext
 from jose import jwt
 import os
 from datetime import datetime, timedelta
 import re
-
+from bson import ObjectId
 from config.database import get_database
-from models.user_model import User, UserLogin
+from models.user_model import User, UserLogin,user_helper,UpdateUserProfile
 from utils.apiResponse import ApiResponse, ApiError
 
 router = APIRouter()
@@ -36,23 +36,18 @@ async def register_user(user: User):
             raise ApiError(500, "Database not connected")
         users_collection = db.users
         
-        # Check if user exists
         existing_user = await users_collection.find_one({"email": user.email})
         if existing_user:
             raise ApiError(409, "User already exists")
         
-        # Validate email
         if not is_valid_email(user.email):
             raise ApiError(400, "Please enter valid email")
         
-        # Validate password
         if len(user.password) < 8:
             raise ApiError(400, "Please enter strong password")
         
-        # Hash password
         hashed_password = get_password_hash(user.password)
         
-        # Create user
         user_data = {
             "name": user.name,
             "email": user.email,
@@ -94,6 +89,78 @@ async def login_user(user_login: UserLogin):
         
         return response.to_dict()
         
+    except ApiError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+def get_current_user(token: str = Header(...)) -> str:
+    try:
+        payload = jwt.decode(token,SECRET_KEY,algorithms=["HS256"])
+        user_id = payload.get("id")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return user_id
+    except ApiError:
+        raise HTTPException(status_code=401,detail="Invalid token")
+
+@router.get("/user-profile")
+async def show_profile(user_id: str = Depends(get_current_user)):
+    try:
+        db = get_database()
+        if db is None:
+            raise ApiError(500, "Database not connected")
+        users_collection = db.users
+
+        user = await users_collection.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise ApiError(404, "User not found")
+
+        profile_data = user_helper(user)
+        response = ApiResponse(200, profile_data, "Profile fetched successfully")
+        return response.to_dict()
+
+    except ApiError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/update-profile")
+async def update_profile(
+    update_data: UpdateUserProfile,
+    user_id: str = Depends(get_current_user)
+):
+    try:
+        db = get_database()
+        if db is None:
+            raise ApiError(500, "Database not connected")
+
+        users_collection = db.users
+        existing_user = await users_collection.find_one({"_id": ObjectId(user_id)})
+        if not existing_user:
+            raise ApiError(404, "User not found")
+
+        update_fields = {}
+
+        if update_data.name is not None:
+            update_fields["name"] = update_data.name
+        if update_data.phone_number is not None:
+            update_fields["phone_number"] = update_data.phone_number
+        if update_data.addresses is not None:
+            update_fields["addresses"] = [address.dict() for address in update_data.addresses]
+
+        if update_fields:
+            await users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$set": update_fields}
+            )
+
+        updated_user = await users_collection.find_one({"_id": ObjectId(user_id)})
+        profile_data = user_helper(updated_user)
+
+        return ApiResponse(200, profile_data, "Profile updated successfully").to_dict()
+
     except ApiError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:

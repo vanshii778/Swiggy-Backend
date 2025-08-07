@@ -11,13 +11,12 @@ load_dotenv()
 app = FastAPI(title="Swiggy", version="1.0.0")
 
 origins = [
-    "http://localhost:1234",  # Your React app's address
-    # Add any other addresses if needed
+    "http://localhost:1234",  
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, # This is the important part!
+    allow_origins=origins, 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import UserContext from '../utils/UserContext';
 
 const Login = ({ onToggleView }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  const navigate = useNavigate();
+  const { setUserName } = useContext(UserContext);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,7 +30,24 @@ const Login = ({ onToggleView }) => {
       if (!response.ok) {
         throw new Error(result.detail || 'Login failed.');
       }
-      setMessage(result.message);
+      
+      // 1. Save the token to local storage
+      localStorage.setItem('userToken', result.data.token);
+
+      // 2. Fetch profile to get user's name
+      const profileResponse = await fetch('http://127.0.0.1:8000/api/user/profile', {
+        headers: { 'Authorization': `Bearer ${result.data.token}` }
+      });
+      const profileResult = await profileResponse.json();
+      
+      if (profileResult.success) {
+        // 3. Update the global context with the user's name
+        setUserName(profileResult.data.name);
+      }
+      
+      // 4. Redirect to the main page or profile
+      navigate("/user-profile");
+      
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -34,37 +56,34 @@ const Login = ({ onToggleView }) => {
   };
 
   return (
-    <div className="bg-white shadow-2xl rounded-xl p-8 w-full max-w-md">
+    <div className="bg-white shadow-2xl rounded-xl p-8 w-full max-w-md border border-gray-100">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Login</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="email" className="block mb-2 font-medium text-gray-700">Email</label>
-          <input id="email" type="email" name="email" placeholder="Enter your email" value={formData.email} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"/>
+          <label htmlFor="email" className="block mb-2 font-semibold text-gray-700">Email</label>
+          <input id="email" type="email" name="email" placeholder="Enter your email" value={formData.email} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"/>
         </div>
         <div>
-          <label htmlFor="password" className="block mb-2 font-medium text-gray-700">Password</label>
-          <input id="password" type="password" name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"/>
+          <label htmlFor="password" className="block mb-2 font-semibold text-gray-700">Password</label>
+          <input id="password" type="password" name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"/>
         </div>
         <div className="text-center">
-          <button type="submit" disabled={isLoading} className="w-full px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 disabled:bg-purple-300">
+          <button type="submit" disabled={isLoading} className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-600 disabled:opacity-50">
             {isLoading ? 'Logging In...' : 'Login'}
           </button>
         </div>
         <div className="text-center mt-4 text-sm">
           <p className="text-gray-600">
             Don't have an account?{' '}
-            <button type="button" onClick={onToggleView} className="font-medium text-purple-600 hover:text-purple-500 focus:outline-none">
+            <button type="button" onClick={onToggleView} className="font-semibold text-orange-600 hover:text-orange-700">
               Register
             </button>
           </p>
         </div>
       </form>
-      {message && <p className="mt-4 text-center text-sm text-gray-600">{message}</p>}
+      {message && <p className="mt-4 text-center text-sm text-red-600">{message}</p>}
     </div>
   );
 };
 
-
-
 export default Login;
-

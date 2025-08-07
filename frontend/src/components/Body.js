@@ -4,14 +4,15 @@ import Shimmer from "./Shimmer";
 import { Link } from "react-router-dom";
 import useOnlineStatus from "../utils/useOnlineStatus";
 import UserContext from "../utils/UserContext";
-import withRestaurantBadges from "./HOC/withRestaurantBadges"
+import withRestaurantBadges from "./HOC/withRestaurantBadges";
 
 const Body = () => {
-  const [listOfRestaurants, setlistOfRestaurants] = useState([]);
-  const [filteredRestaurant, setfilteredRestaurant] = useState([]);
-  const [searchText, setsearchText] = useState("");
+  const [listOfRestaurants, setListOfRestaurants] = useState([]);
+  const [filteredRestaurant, setFilteredRestaurant] = useState([]);
+  const [searchText, setSearchText] = useState("");
 
   const onlineStatus = useOnlineStatus();
+  // Destructure what you need from the context
   const { loggedInUser, setUserName } = useContext(UserContext);
 
   const RestaurantCardWithBadges = withRestaurantBadges(RestaurantCard);
@@ -21,17 +22,20 @@ const Body = () => {
   }, []);
 
   const fetchData = async () => {
-    const data = await fetch(
-      "https://www.swiggy.com/dapi/restaurants/list/v5?lat=23.022505&lng=72.5713621&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING"
-    );
-    const json = await data.json();
-
-    setlistOfRestaurants(
-      json?.data?.cards[4]?.card?.card?.gridElements?.infoWithStyle?.restaurants || []
-    );
-    setfilteredRestaurant(
-      json?.data?.cards[4]?.card?.card?.gridElements?.infoWithStyle?.restaurants || []
-    );
+    try {
+      const data = await fetch(
+        "https://www.swiggy.com/dapi/restaurants/list/v5?lat=23.022505&lng=72.5713621&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING"
+      );
+      const json = await data.json();
+      const restaurants = json?.data?.cards[4]?.card?.card?.gridElements?.infoWithStyle?.restaurants || [];
+      setListOfRestaurants(restaurants);
+      setFilteredRestaurant(restaurants);
+    } catch (error) {
+        console.error("Failed to fetch restaurant data:", error);
+        // Set to empty arrays to prevent crashes
+        setListOfRestaurants([]);
+        setFilteredRestaurant([]);
+    }
   };
 
   if (onlineStatus === false) {
@@ -42,9 +46,12 @@ const Body = () => {
     );
   }
 
-  return listOfRestaurants.length === 0 ? (
-    <Shimmer />
-  ) : (
+  // Show shimmer UI while loading
+  if (listOfRestaurants.length === 0) {
+    return <Shimmer />;
+  }
+
+  return (
     <div className="px-6 py-4">
       {/* Filters Section */}
       <div className="filter flex flex-wrap gap-4 justify-between items-center mb-6 bg-gray-50 p-4 rounded-lg shadow-sm">
@@ -56,7 +63,7 @@ const Body = () => {
             className="border border-gray-300 rounded px-3 py-1 outline-none focus:ring-2 focus:ring-blue-300"
             placeholder="Search restaurant..."
             value={searchText}
-            onChange={(e) => setsearchText(e.target.value)}
+            onChange={(e) => setSearchText(e.target.value)}
           />
           <button
             className="px-4 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
@@ -64,7 +71,7 @@ const Body = () => {
               const filtered = listOfRestaurants.filter((res) =>
                 res.info.name.toLowerCase().includes(searchText.toLowerCase())
               );
-              setfilteredRestaurant(filtered);
+              setFilteredRestaurant(filtered);
             }}
           >
             Search
@@ -77,9 +84,9 @@ const Body = () => {
             className="px-4 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition"
             onClick={() => {
               const topRated = listOfRestaurants.filter(
-                (res) => res.info.avgRating > 4
+                (res) => res.info.avgRating > 4.5
               );
-              setfilteredRestaurant(topRated);
+              setFilteredRestaurant(topRated);
             }}
           >
             Top Rated Restaurants
@@ -91,22 +98,13 @@ const Body = () => {
           <label className="font-medium">UserName:</label>
           <input
             className="border border-gray-300 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-purple-300"
-            value={loggedInUser}
+            // --- THE FIX ---
+            // Use `loggedInUser || ''` to prevent passing null to the value prop.
+            value={loggedInUser || ''}
             onChange={(e) => setUserName(e.target.value)}
           />
         </div>
       </div>
-
-      {/* Unique Top Offers Banner */}
-      {filteredRestaurant.some(res => res.info.offers) && (
-        <div className="mb-8 flex items-center justify-center">
-          <div className="w-full max-w-2xl bg-gradient-to-r from-pink-400 via-yellow-300 to-orange-400 rounded-2xl shadow-lg py-4 px-8 flex items-center gap-4 border-4 border-yellow-200 animate-pulse">
-            <span className="text-3xl">🎉</span>
-            <span className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-wide drop-shadow">Top Offers Today</span>
-            <span className="text-3xl">🍔🍕🥗</span>
-          </div>
-        </div>
-      )}
 
       {/* Restaurant Cards Section */}
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -116,7 +114,12 @@ const Body = () => {
             key={restaurant.info.id}
             className="hover:scale-105 transition-transform duration-200"
           >
-            <RestaurantCardWithBadges resData={restaurant} />
+            {/* Logic to show badge only if the restaurant is top-rated */}
+            {restaurant.info.avgRating > 4.5 ? (
+              <RestaurantCardWithBadges resData={restaurant} />
+            ) : (
+              <RestaurantCard resData={restaurant} />
+            )}
           </Link>
         ))}
       </div>
