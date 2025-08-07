@@ -12,6 +12,7 @@ app = FastAPI(title="Swiggy", version="1.0.0")
 
 origins = [
     "http://localhost:1234",  
+    "http://127.0.0.1:1234",  
 ]
 
 app.add_middleware(
@@ -26,7 +27,7 @@ app.add_middleware(
 async def startup_event():
     await connect_db()
 
-# Routes
+
 app.include_router(user_router, prefix="/api/user", tags=["user"])
 
 @app.get("/")

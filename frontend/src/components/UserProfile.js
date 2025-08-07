@@ -9,20 +9,28 @@ const UserProfile = () => {
         const fetchProfile = async () => {
             const token = localStorage.getItem('userToken');
             if (!token) {
-                setError("No authorization token found.");
+                setError("No authorization token found. Please log in.");
                 setLoading(false);
                 return;
             }
 
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/user/profile', {
+                const response = await fetch('http://127.0.0.1:8000/api/user/user-profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || "Failed to fetch profile");
+                }
+                
                 const result = await response.json();
                 if (!result.success) {
                     throw new Error(result.message || "Failed to fetch profile");
                 }
+
                 setProfile(result.data);
+
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -33,9 +41,17 @@ const UserProfile = () => {
         fetchProfile();
     }, []);
 
-    if (loading) return <div className="text-center p-10">Loading profile...</div>;
-    if (error) return <div className="text-center p-10 text-red-500">Error: {error}</div>;
-    if (!profile) return <div className="text-center p-10">No profile data found.</div>;
+    if (loading) {
+        return <div className="text-center p-10">Loading profile...</div>;
+    }
+
+    if (error) {
+        return <div className="text-center p-10 text-red-500">Error: {error}</div>;
+    }
+
+    if (!profile) {
+        return <div className="text-center p-10">No profile data found.</div>;
+    }
 
     return (
         <div className="max-w-2xl mx-auto my-10 bg-white p-8 rounded-xl shadow-lg">

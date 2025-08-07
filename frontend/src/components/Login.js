@@ -31,21 +31,12 @@ const Login = ({ onToggleView }) => {
         throw new Error(result.detail || 'Login failed.');
       }
       
-      // 1. Save the token to local storage
       localStorage.setItem('userToken', result.data.token);
 
-      // 2. Fetch profile to get user's name
-      const profileResponse = await fetch('http://127.0.0.1:8000/api/user/profile', {
-        headers: { 'Authorization': `Bearer ${result.data.token}` }
-      });
-      const profileResult = await profileResponse.json();
-      
-      if (profileResult.success) {
-        // 3. Update the global context with the user's name
-        setUserName(profileResult.data.name);
+      if (result.data.name) {
+          setUserName(result.data.name);
       }
       
-      // 4. Redirect to the main page or profile
       navigate("/user-profile");
       
     } catch (error) {

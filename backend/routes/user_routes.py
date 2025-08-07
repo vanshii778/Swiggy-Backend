@@ -75,18 +75,16 @@ async def login_user(user_login: UserLogin):
             raise ApiError(500, "Database not connected")
         users_collection = db.users
         
-        # Find user
         user = await users_collection.find_one({"email": user_login.email})
         if not user:
             raise ApiError(404, "User Doesn't exist")
         
-        # Verify password
         if not verify_password(user_login.password, user["password"]):
             raise ApiError(401, "Invalid Credentials")
         
         token = create_token(str(user["_id"]))
-        response = ApiResponse(200, {"token": token}, "Login successful")
-        
+        user_name = user.get("name") 
+        response = ApiResponse(200, {"token": token, "name": user_name}, "Login successful")
         return response.to_dict()
         
     except ApiError as e:
@@ -95,15 +93,19 @@ async def login_user(user_login: UserLogin):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-def get_current_user(token: str = Header(...)) -> str:
+def get_current_user(token: str = Header(..., alias="Authorization")) -> str:
+    if not token.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid authentication scheme.")
+    token = token.split(" ")[1]
+
     try:
-        payload = jwt.decode(token,SECRET_KEY,algorithms=["HS256"])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         user_id = payload.get("id")
         if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(status_code=401, detail="Invalid token payload.")
         return user_id
-    except ApiError:
-        raise HTTPException(status_code=401,detail="Invalid token")
+    except ApiError: 
+        raise HTTPException(status_code=401, detail="Invalid token.")
 
 @router.get("/user-profile")
 async def show_profile(user_id: str = Depends(get_current_user)):
@@ -124,7 +126,7 @@ async def show_profile(user_id: str = Depends(get_current_user)):
     except ApiError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error.")
 
 @router.put("/update-profile")
 async def update_profile(

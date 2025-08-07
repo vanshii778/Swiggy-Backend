@@ -21,20 +21,19 @@ const About = lazy(() => import("./components/About"));
 const AppLayout = () => {
   const [userName, setUserName] = useState(null);
 
-  // Check for a logged-in user when the app first loads
   useEffect(() => {
     const verifyUser = async () => {
       const token = localStorage.getItem('userToken');
       if (token) {
         try {
-          const response = await fetch('http://127.0.0.1:8000/api/user/profile', {
+          const response = await fetch('http://127.0.0.1:8000/api/user/user-profile', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const result = await response.json();
           if (result.success) {
             setUserName(result.data.name);
           } else {
-            localStorage.removeItem('userToken'); // Clean up invalid token
+            localStorage.removeItem('userToken'); 
           }
         } catch (error) {
           console.error("Session verification failed:", error);

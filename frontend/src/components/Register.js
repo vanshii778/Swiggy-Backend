@@ -31,10 +31,9 @@ const Register = ({ onToggleView }) => {
         throw new Error(result.detail || 'Registration failed.');
       }
       
-      // Auto-login after successful registration
       localStorage.setItem('userToken', result.data.token);
-      setUserName(formData.name); // Set name from the form directly
-      navigate("/"); // Redirect to home page
+      setUserName(formData.name);
+      navigate("/"); 
 
     } catch (error) {
       setMessage(error.message);
