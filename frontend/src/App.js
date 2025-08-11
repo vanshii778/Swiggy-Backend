@@ -14,7 +14,8 @@ import Cart from "./components/Cart";
 import AuthPage from "./components/AuthPage";
 import UserProfile from "./components/UserProfile";
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 const Grocery = lazy(() => import("./components/Grocery"));
 const About = lazy(() => import("./components/About"));
 
@@ -23,21 +24,24 @@ const AppLayout = () => {
 
   useEffect(() => {
     const verifyUser = async () => {
-      const token = localStorage.getItem('userToken');
+      const token = localStorage.getItem("userToken");
       if (token) {
         try {
-          const response = await fetch('http://127.0.0.1:8000/api/user/user-profile', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
+          const response = await fetch(
+            "http://127.0.0.1:8000/api/user/user-profile",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           const result = await response.json();
           if (result.success) {
             setUserName(result.data.name);
           } else {
-            localStorage.removeItem('userToken'); 
+            localStorage.removeItem("userToken");
           }
         } catch (error) {
           console.error("Session verification failed:", error);
-          localStorage.removeItem('userToken');
+          localStorage.removeItem("userToken");
         }
       }
     };
@@ -68,14 +72,28 @@ const appRouter = createBrowserRouter([
       { path: "/cart", element: <Cart /> },
       { path: "/login", element: <AuthPage defaultIsLogin={true} /> },
       { path: "/signup", element: <AuthPage defaultIsLogin={false} /> },
-      { path: "/about", element: <Suspense fallback={<h1>Loading...</h1>}><About /></Suspense> },
-      { path: "/grocery", element: <Suspense fallback={<h1>Loading...</h1>}><Grocery /></Suspense> },
       {
-        path: "/", // Parent path for protected routes
+        path: "/about",
+        element: (
+          <Suspense fallback={<h1>Loading...</h1>}>
+            <About />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/grocery",
+        element: (
+          <Suspense fallback={<h1>Loading...</h1>}>
+            <Grocery />
+          </Suspense>
+        ),
+      },
+      { path: "/forgot-password", element: <ForgotPassword /> },
+      { path: "/reset-password/:token", element: <ResetPassword /> },
+      {
+        path: "/", 
         element: <ProtectedRoute />,
-        children: [
-          { path: "user-profile", element: <UserProfile /> }
-        ]
+        children: [{ path: "user-profile", element: <UserProfile /> }],
       },
     ],
   },

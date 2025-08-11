@@ -53,6 +53,17 @@ class ShowUserProfile(BaseModel):
 class UserResponse(BaseModel):
     token: str
 
+class ForgotPassword(BaseModel):
+    email: EmailStr
+
+class ResetPassword(BaseModel):
+    token: str
+    new_password: str
+
+class ChangePassword(BaseModel):
+    current_password: str
+    new_password: str
+
 def user_helper(user_data) -> dict:
     if not user_data:
         return {}

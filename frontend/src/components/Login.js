@@ -1,12 +1,12 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import UserContext from '../utils/UserContext';
+import React, { useState, useContext } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import UserContext from "../utils/UserContext";
 
 const Login = ({ onToggleView }) => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [message, setMessage] = useState('');
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const navigate = useNavigate();
   const { setUserName } = useContext(UserContext);
 
@@ -17,28 +17,27 @@ const Login = ({ onToggleView }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
+    setMessage("");
     setIsLoading(true);
     try {
-      const backendUrl = 'http://127.0.0.1:8000/api/user/login';
+      const backendUrl = "http://127.0.0.1:8000/api/user/login";
       const response = await fetch(backendUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.detail || 'Login failed.');
+        throw new Error(result.detail || "Login failed.");
       }
-      
-      localStorage.setItem('userToken', result.data.token);
+
+      localStorage.setItem("userToken", result.data.token);
 
       if (result.data.name) {
-          setUserName(result.data.name);
+        setUserName(result.data.name);
       }
-      
+
       navigate("/user-profile");
-      
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -48,31 +47,77 @@ const Login = ({ onToggleView }) => {
 
   return (
     <div className="bg-white shadow-2xl rounded-xl p-8 w-full max-w-md border border-gray-100">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Login</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+        Login
+      </h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="email" className="block mb-2 font-semibold text-gray-700">Email</label>
-          <input id="email" type="email" name="email" placeholder="Enter your email" value={formData.email} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+          <label
+            htmlFor="email"
+            className="block mb-2 font-semibold text-gray-700"
+          >
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            name="email"
+            placeholder="Enter your email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
         </div>
         <div>
-          <label htmlFor="password" className="block mb-2 font-semibold text-gray-700">Password</label>
-          <input id="password" type="password" name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+          {/* This section now includes a Link to the forgot password route */}
+          <div className="flex justify-between items-center mb-2">
+            <label htmlFor="password" className="font-semibold text-gray-700">
+              Password
+            </label>
+            <Link
+              to="/forgot-password"
+              className="text-sm font-semibold text-orange-600 hover:text-orange-700"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            placeholder="Enter your password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
         </div>
         <div className="text-center">
-          <button type="submit" disabled={isLoading} className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-600 disabled:opacity-50">
-            {isLoading ? 'Logging In...' : 'Login'}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-600 disabled:opacity-50 transition-all duration-300"
+          >
+            {isLoading ? "Logging In..." : "Login"}
           </button>
         </div>
         <div className="text-center mt-4 text-sm">
           <p className="text-gray-600">
-            Don't have an account?{' '}
-            <button type="button" onClick={onToggleView} className="font-semibold text-orange-600 hover:text-orange-700">
+            Don't have an account?{" "}
+            <button
+              type="button"
+              onClick={onToggleView}
+              className="font-semibold text-orange-600 hover:text-orange-700"
+            >
               Register
             </button>
           </p>
         </div>
       </form>
-      {message && <p className="mt-4 text-center text-sm text-red-600">{message}</p>}
+      {message && (
+        <p className="mt-4 text-center text-sm text-red-600">{message}</p>
+      )}
     </div>
   );
 };
