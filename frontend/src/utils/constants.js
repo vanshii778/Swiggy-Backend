@@ -3,3 +3,8 @@ export const CDN_URL = "https://media-assets.swiggy.com/swiggy/image/upload/fl_l
 export const LOGO_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-yPxmHYHF8tgtmWhpC59Jk2PLpzbxaL-9bA&s";
 
 export const MENU_API = "https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=23.02760&lng=72.58710&restaurantId=";
+
+// Authentication API Configuration
+export const AUTH_API = "http://127.0.0.1:8000/api/auth";
+export const TOKEN_KEY = "token";
+export const REFRESH_TOKEN_KEY = "refreshToken";

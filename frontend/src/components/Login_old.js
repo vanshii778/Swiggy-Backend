@@ -168,71 +168,68 @@ const Login = () => {
                 error={touchedFields.password ? fieldErrors.password : ""}
                 placeholder="Enter your password"
                 required
-              />
-            </div>
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            name="email"
+            placeholder="Enter your email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+        </div>
+        <div>
+          {/* This section now includes a Link to the forgot password route */}
+          <div className="flex justify-between items-center mb-2">
+            <label htmlFor="password" className="font-semibold text-gray-700">
+              Password
+            </label>
+            <Link
+              to="/forgot-password"
+              className="text-sm font-semibold text-orange-600 hover:text-orange-700"
+            >
+              Forgot Password?
+            </Link>
           </div>
-
-          {successMessage && (
-            <div className="rounded-md bg-green-50 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-green-800">{successMessage}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-red-800">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <Button
+          <input
+            id="password"
+            type="password" autoComplete="current-password"
+            name="password"
+            placeholder="Enter your password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+        </div>
+        <div className="text-center">
+          <button
             type="submit"
-            disabled={loading}
-            fullWidth
+            disabled={isLoading}
+            className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-600 disabled:opacity-50 transition-all duration-300"
           >
-            {loading ? (
-              <div className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Logging in...
-              </div>
-            ) : (
-              'Sign in'
-            )}
-          </Button>
-
-          <div className="flex items-center justify-center">
-            <span className="text-sm text-gray-500">
-              New to Swiggy?{' '}
-              <Link
-                to="/register"
-                className="font-medium text-orange-600 hover:text-orange-500"
-              >
-                Create an account
-              </Link>
-            </span>
-          </div>
-        </form>
-      </div>
+            {isLoading ? "Logging In..." : "Login"}
+          </button>
+        </div>
+        <div className="text-center mt-4 text-sm">
+          <p className="text-gray-600">
+            Don't have an account?{" "}
+            <button
+              type="button"
+              onClick={onToggleView}
+              className="font-semibold text-orange-600 hover:text-orange-700"
+            >
+              Register
+            </button>
+          </p>
+        </div>
+      </form>
+      {message && (
+        <p className="mt-4 text-center text-sm text-red-600">{message}</p>
+      )}
     </div>
   );
 };

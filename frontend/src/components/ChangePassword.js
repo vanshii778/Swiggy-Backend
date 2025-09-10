@@ -67,7 +67,7 @@ const ChangePassword = ({ onClose }) => {
           <div>
             <label className="block mb-2 font-semibold">Current Password</label>
             <input
-              type="password"
+              type="password" autoComplete="current-password"
               name="current_password"
               value={formData.current_password}
               onChange={handleChange}
@@ -78,7 +78,7 @@ const ChangePassword = ({ onClose }) => {
           <div>
             <label className="block mb-2 font-semibold">New Password</label>
             <input
-              type="password"
+              type="password" autoComplete="current-password"
               name="new_password"
               value={formData.new_password}
               onChange={handleChange}
@@ -91,7 +91,7 @@ const ChangePassword = ({ onClose }) => {
               Confirm New Password
             </label>
             <input
-              type="password"
+              type="password" autoComplete="current-password"
               name="confirm_new_password"
               value={formData.confirm_new_password}
               onChange={handleChange}

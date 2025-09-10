@@ -1,20 +1,48 @@
-import { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { LOGO_URL } from "../utils/constants";
 import useOnlineStatus from "../utils/useOnlineStatus";
 import UserContext from "../utils/UserContext";
+import apiService from "../utils/apiService";
 
 export const Header = () => {
   const onlineStatus = useOnlineStatus();
   const { loggedInUser, setUserName } = useContext(UserContext);
   const cartItems = useSelector((store) => store.cart.items);
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("userToken");
-    setUserName(null);
-    navigate("/");
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (loggedInUser && apiService.isAuthenticated()) {
+        try {
+          const adminStatus = await apiService.isAdmin();
+          setIsAdmin(adminStatus);
+        } catch (error) {
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [loggedInUser]);
+
+  const handleLogout = async () => {
+    try {
+      await apiService.logout();
+      setUserName(null);
+      setIsAdmin(false);
+      navigate("/");
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Still logout locally if server logout fails
+      setUserName(null);
+      setIsAdmin(false);
+      navigate("/");
+    }
   };
 
   return (
@@ -51,6 +79,13 @@ export const Header = () => {
               Contact
             </Link>
           </li>
+          {isAdmin && (
+            <li>
+              <Link to="/admin" className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded">
+                Admin
+              </Link>
+            </li>
+          )}
           <li>
             <Link
               to="/cart"
@@ -63,15 +98,17 @@ export const Header = () => {
           {loggedInUser ? (
             <>
               <li className="flex items-center gap-2">
-                <Link
-                  to="/user-profile"
-                  className="flex items-center gap-2 font-bold text-gray-800 hover:text-blue-600"
-                >
-                  <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-sm">
-                    {loggedInUser.charAt(0).toUpperCase()}
+                  <div 
+                    onClick={() => navigate("/profile")}
+                    className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-sm cursor-pointer hover:bg-orange-600 transition-colors"
+                    title={`Go to Profile (${loggedInUser})`}
+                  >
+                    {/* Show initials, e.g., VT */}
+                    {loggedInUser
+                      .split(' ')
+                      .map(word => word[0]?.toUpperCase() || '')
+                      .join('')}
                   </div>
-
-                </Link>
               </li>
               <li>
                 <button
